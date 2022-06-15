@@ -19,12 +19,6 @@ namespace DataAccesLayer
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            builder
-                .Entity<User>()
-                .HasData(
-                new User { Id = 1, Username = "User1", Password = "Password1" },
-                new User { Id = 2, Username = "User2", Password = "Password2" });
         }
     }
 }

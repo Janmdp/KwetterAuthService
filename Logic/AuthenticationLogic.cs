@@ -26,13 +26,37 @@ namespace Logic
 
         public bool AuthenticateUser(User user)
         {
-            return repo.AuthenticateUser(user).Result;
+            var dbUser = repo.AuthenticateUser(user).Result;
+            return Hasher.ValidatePassword(user.Password, dbUser.Password);
         }
 
         public string GenerateToken(User user)
         {
-            var token = tokenBuilder.BuildToken(user.Username);
+            var token = tokenBuilder.BuildToken(user);
             return token;
+        }
+
+        public string UploadCredentials(User user)
+        {
+            user.Password = Hasher.HashPassword(user.Password);
+            var us = repo.UploadCredentials(user).Result;
+            var token = tokenBuilder.BuildToken(us);
+            return token;
+        }
+
+        public User GetData(User user)
+        {
+            return repo.GetData(user).Result;
+        }
+
+        public bool CheckUserExistById(User user)
+        {
+            return repo.CheckUserExistById(user).Result;
+        }
+
+        public async void DeleteCredentials(int id)
+        {
+            repo.DeleteCredentials(id);
         }
     }
 }

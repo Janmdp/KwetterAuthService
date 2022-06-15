@@ -16,6 +16,7 @@ using DataAccesLayer;
 using Logic;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using KwetterAuthenticationService.RabbitMQ;
 
 namespace KwetterAuthenticationService
 {
@@ -32,10 +33,10 @@ namespace KwetterAuthenticationService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-
+            services.AddHostedService<RabbitMqSubscriber>();
             services.AddDbContext<UserDbContext>(options =>
             {
-                options.UseMySql(Configuration.GetValue<string>("ConnectionString"), ServerVersion.AutoDetect(Configuration.GetValue<string>("ConnectionString")), b => b.MigrationsAssembly("KwetterAuthenticationService"));
+                options.UseMySql(Configuration.GetValue<string>("AzureDb"), ServerVersion.AutoDetect(Configuration.GetValue<string>("AzureDb")), b => b.MigrationsAssembly("KwetterAuthenticationService"));
             });
 
             services

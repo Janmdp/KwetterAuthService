@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KwetterAuthenticationService.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20220507194437_Users")]
-    partial class Users
+    [Migration("20220612090934_Init db")]
+    partial class Initdb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

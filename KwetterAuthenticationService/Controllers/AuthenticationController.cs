@@ -9,6 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
+using System.Text;
+using KwetterAuthenticationService.RabbitMQ;
+using Newtonsoft.Json;
 
 namespace KwetterAuthenticationService.Controllers
 {
@@ -17,10 +21,12 @@ namespace KwetterAuthenticationService.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly AuthenticationLogic logic;
+        private readonly RabbitMqMessenger client;
 
         public AuthenticationController(UserDbContext context, ITokenBuilder _tokenBuilder)
         {
             logic = new AuthenticationLogic(context, _tokenBuilder);
+            client = new RabbitMqMessenger();
         }
 
         [HttpPost("login")]
@@ -32,7 +38,7 @@ namespace KwetterAuthenticationService.Controllers
             if (!logic.AuthenticateUser(user))
                 return BadRequest("Could not authenticate user");
 
-
+            user = logic.GetData(user);
             return Ok(logic.GenerateToken(user));
 
         }
@@ -42,24 +48,67 @@ namespace KwetterAuthenticationService.Controllers
         public async Task<IActionResult> VerifyToken()
         {
             //Check if the received token contains a username
-            var username = User
+            var userId = User
                 .Claims
                 .SingleOrDefault();
 
-            if (username == null)
+
+            if (userId == null)
             {
                 return Unauthorized();
             }
 
             //Check if the username matches a existing account
-            User user = new User() { Username = username.Value };
+            User user = new User() { Id = Convert.ToInt32(userId.Value) };
 
-            if (!logic.CheckUserExist(user))
+            if (!logic.CheckUserExistById(user))
             {
                 return Unauthorized();
             }
 
             return NoContent();
+        }
+
+        [HttpPost("create")]
+
+        public async Task<IActionResult> CreateCredentials([FromBody] User user)
+        {
+            
+            if (!logic.CheckUserExist(user))
+            {
+                var results = logic.UploadCredentials(user);
+                client.SendRabbitMessage(JsonConvert.SerializeObject(user));
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Username taken");
+            }
+
+            
+        }
+
+        //[HttpDelete("delete")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        //public async Task<IActionResult> DeleteCredentials(int id)
+        //{
+        //    var userId = User
+        //        .Claims
+        //        .SingleOrDefault();
+
+        //    if(Convert.ToInt32(userId.Value) == id)
+        //    {
+        //        logic.DeleteCredentials(id);
+        //        return Ok();
+        //    }
+        //    return Unauthorized();
+        //}
+
+        [HttpPost("test")]
+        public async Task<IActionResult> Rabbit([FromBody] User user)
+        {
+            client.SendRabbitMessage(JsonConvert.SerializeObject(user));
+            return Ok();
         }
     }
 }
