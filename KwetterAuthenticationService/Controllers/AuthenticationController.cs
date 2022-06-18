@@ -13,6 +13,7 @@ using RabbitMQ.Client;
 using System.Text;
 using KwetterAuthenticationService.RabbitMQ;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace KwetterAuthenticationService.Controllers
 {
@@ -39,7 +40,9 @@ namespace KwetterAuthenticationService.Controllers
                 return BadRequest("Could not authenticate user");
 
             user = logic.GetData(user);
-            return Ok(logic.GenerateToken(user));
+            var token = logic.GenerateToken(user);
+            Response.Cookies.Append("jwt", token, new CookieOptions { HttpOnly = true});
+            return Ok(token);
 
         }
 

@@ -21,7 +21,7 @@ namespace DataAccesLayer
         {
             var dbUser = await context
                 .Users
-                .SingleOrDefaultAsync(u => u.Username == user.Username);
+                .SingleOrDefaultAsync(u => u.Email == user.Email);
             if (dbUser == null)
                 return false;
 
@@ -32,7 +32,7 @@ namespace DataAccesLayer
         {
             var dbUser = await context
                 .Users
-                .SingleOrDefaultAsync(u => u.Username == user.Username);
+                .SingleOrDefaultAsync(u => u.Email == user.Email);
 
             return dbUser;
         }
@@ -41,7 +41,7 @@ namespace DataAccesLayer
         {
             return await context
                 .Users
-                .SingleOrDefaultAsync(u => u.Username == user.Username);
+                .SingleOrDefaultAsync(u => u.Email == user.Email);
         }
 
         public async Task<User> UploadCredentials(User user)
@@ -50,7 +50,7 @@ namespace DataAccesLayer
             context.SaveChanges();
             return  await context
                     .Users
-                    .SingleOrDefaultAsync(u => u.Username == user.Username);
+                    .SingleOrDefaultAsync(u => u.Email == user.Email);
         }
 
         public async Task<bool> CheckUserExistById(User user)
