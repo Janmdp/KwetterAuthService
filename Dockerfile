@@ -30,7 +30,7 @@ WORKDIR /app
 COPY ["KwetterAuthenticationService/KwetterAuthenticationService.csproj", "KwetterAuthenticationService/"]
 COPY ["Models/Models.csproj", "KwetterAuthenticationService/"]
 COPY ["Logic/Logic.csproj", "KwetterAuthenticationService/"]
-COPY ["DataAccessLayer/DataAccessLayer.csproj", "KwetterAuthenticationService/"]
+COPY ["DataAccesLayer/DataAccesLayer.csproj", "KwetterAuthenticationService/"]
 RUN dotnet restore "KwetterAuthenticationService/KwetterAuthenticationService.csproj"
 
 COPY . ./
