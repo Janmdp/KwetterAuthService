@@ -91,6 +91,12 @@ namespace KwetterAuthenticationService.Controllers
             
         }
 
+        [HttpGet("teste")]
+        public async Task<IActionResult> Test()
+        {
+            return Ok("test");
+        }
+
         //[HttpDelete("delete")]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         //public async Task<IActionResult> DeleteCredentials(int id)

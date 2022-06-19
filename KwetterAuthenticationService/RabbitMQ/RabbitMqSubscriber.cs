@@ -8,6 +8,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace KwetterAuthenticationService.RabbitMQ
         private readonly AuthenticationLogic logic;
         private readonly IServiceScopeFactory scopeFactory;
         private string queuename = "";
+        private bool isConnected = false;
 
         public RabbitMqSubscriber(IServiceScopeFactory scopeFactory)
         {
@@ -36,41 +38,54 @@ namespace KwetterAuthenticationService.RabbitMQ
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stoppingToken.ThrowIfCancellationRequested();
-
-            var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += (model, ea) =>
+            if (isConnected)
             {
-                var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-                //todo put own logic here
-                var id = Convert.ToInt32(message);
-                logic.DeleteCredentials(id);
-            };
-            channel.BasicConsume(queue: queuename,
-                                 autoAck: true,
-                                 consumer: consumer);
+                stoppingToken.ThrowIfCancellationRequested();
+
+                var consumer = new EventingBasicConsumer(channel);
+                consumer.Received += (model, ea) =>
+                {
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+                    //todo put own logic here
+                    var id = Convert.ToInt32(message);
+                    logic.DeleteCredentials(id);
+                };
+                channel.BasicConsume(queue: queuename,
+                                     autoAck: true,
+                                     consumer: consumer);
+            }
+            
 
             return Task.CompletedTask;
         }
 
         private void StartClient()
         {
-            var factory = new ConnectionFactory() { HostName = "localhost", Port = 49154 };
-            connection = factory.CreateConnection();
-            channel = connection.CreateModel();
+            try
+            {
+                var factory = new ConnectionFactory() { HostName = "host.docker.internal", Port = 49154 };
+                connection = factory.CreateConnection();
+                channel = connection.CreateModel();
 
-            channel.ExchangeDeclare(exchange: "delete_user_queue", type: ExchangeType.Fanout);
+                channel.ExchangeDeclare(exchange: "delete_user_queue", type: ExchangeType.Fanout);
 
-            queuename = channel.QueueDeclare().QueueName;
+                queuename = channel.QueueDeclare().QueueName;
 
-            //channel.QueueDeclare(queue: "delete_user_queue",
-            //                     durable: false,
-            //                     exclusive: false,
-            //                     autoDelete: false,
-            //                     arguments: null);
+                //channel.QueueDeclare(queue: "delete_user_queue",
+                //                     durable: false,
+                //                     exclusive: false,
+                //                     autoDelete: false,
+                //                     arguments: null);
 
-            channel.QueueBind(queue: queuename, exchange: "delete_user_queue", routingKey: "");
+                channel.QueueBind(queue: queuename, exchange: "delete_user_queue", routingKey: "");
+
+                isConnected = true;
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine("Failed to connect to rabbitmq");
+            }
 
         }
 

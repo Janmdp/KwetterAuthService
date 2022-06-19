@@ -21,6 +21,7 @@ namespace KwetterAuthenticationService
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("http://+:5001");
                 })
                 .ConfigureLogging(logging => logging.AddConsole());
     }
